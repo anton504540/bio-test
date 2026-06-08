@@ -139,6 +139,8 @@ function parseQuestions(text) {
                     isCorrect = true;
                     line = line.replace(/\s*\[ОТВЕТ:\s*.*\]/g, '');
                 }
+                // Отрезаем букву с круглой скобкой в начале ("а) ", "б) "), оставляя только чистый текст
+                line = line.replace(/^[а-яёA-Za-z]\)\s*/, '');
                 options.push({ text: line, isCorrect: isCorrect });
             }
         }
@@ -191,8 +193,17 @@ document.getElementById('start-quiz-btn').addEventListener('click', () => {
     const selectElement = document.getElementById('quiz-count-select');
     const count = parseInt(selectElement.value, 10);
     
-    const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-    testQuestions = shuffled.slice(0, count);
+    // Перемешиваем сами вопросы
+    const shuffledQuestions = [...allQuestions].sort(() => 0.5 - Math.random());
+    const selectedQuestions = shuffledQuestions.slice(0, count);
+    
+    // Новое: Перемешиваем ВАРЬЯНТЫ ОТВЕТОВ внутри каждого выбранного вопроса
+    testQuestions = selectedQuestions.map(q => {
+        return {
+            question: q.question,
+            options: [...q.options].sort(() => 0.5 - Math.random())
+        };
+    });
     
     currentQuestionIndex = 0;
     correctAnswersCount = 0;
@@ -227,10 +238,17 @@ function showQuestion() {
     const optionsList = document.getElementById('options-list');
     optionsList.innerHTML = '';
     
+    // Алфавитные маркеры для красивого вывода ответов на русском языке
+    const letters = ['а', 'б', 'в', 'г', 'д', 'е', 'ж'];
+    
     qData.options.forEach((option, index) => {
         const li = document.createElement('li');
         li.className = 'option-item';
-        li.textContent = option.text;
+        
+        // Автоматически подставляем правильную букву перед перемешанным вариантом ответа
+        const prefix = letters[index] ? `${letters[index]}) ` : '';
+        li.textContent = prefix + option.text;
+        
         li.addEventListener('click', () => selectOption(index));
         optionsList.appendChild(li);
     });
@@ -325,12 +343,10 @@ function loadState() {
     
     try {
         const state = JSON.parse(saved);
-        
         if (!state || !state.testQuestions || state.testQuestions.length === 0) {
             localStorage.removeItem('bio_quiz_state');
             return;
         }
-
         testQuestions = state.testQuestions;
         currentQuestionIndex = state.currentQuestionIndex;
         correctAnswersCount = state.correctAnswersCount;
@@ -340,7 +356,6 @@ function loadState() {
         if (badge) {
             badge.style.display = 'inline-block';
         }
-        
         setTimeout(() => { startQuiz(); }, 1000);
     } catch (e) {
         localStorage.removeItem('bio_quiz_state');
