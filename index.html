@@ -30,6 +30,22 @@
         </div>
     </div>
 
+    <!-- Новое: Экран настройки генерации (выбор количества вопросов) -->
+    <div id="setup-box" class="setup-box" style="display: none;">
+        <h3>Настройка теста</h3>
+        <p id="total-available-text">Всего доступно вопросов в файле: 0</p>
+        
+        <div class="setup-field">
+            <label for="quiz-count-select">Количество вопросов в тесте:</label>
+            <select id="quiz-count-select">
+                <!-- Опции сгенерирует JS динамически -->
+            </select>
+        </div>
+        
+        <button id="start-quiz-btn" class="btn">Начать тестирование 🚀</button>
+        <button onclick="cancelSetup()" class="btn btn-danger">Назад в меню</button>
+    </div>
+
     <!-- Экран самого теста -->
     <div id="quiz-box" class="question-box">
         <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: gray; margin-bottom: 5px;">

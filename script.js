@@ -15,7 +15,7 @@ dbRequest.onupgradeneeded = function(e) {
 };
 dbRequest.onsuccess = function(e) {
     db = e.target.result;
-    renderSavedFilesList(); // Отрисовываем список файлов после подключения к БД
+    renderSavedFilesList();
 };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -51,7 +51,7 @@ document.getElementById('file-input').addEventListener('change', function(e) {
     const reader = new FileReader();
     reader.onload = function(event) {
         const textContent = event.target.result;
-        saveFileToDB(file.name, textContent); // Сохраняем в память телефона
+        saveFileToDB(file.name, textContent);
         parseQuestions(textContent);
     };
     reader.readAsText(file, 'UTF-8');
@@ -153,7 +153,44 @@ function parseQuestions(text) {
         return;
     }
 
-    const count = Math.min(allQuestions.length, 20);
+    openQuizSetup();
+}
+// Логика построения селектора количества вопросов
+function openQuizSetup() {
+    document.getElementById('upload-box').style.display = 'none';
+    document.getElementById('setup-box').style.display = 'block';
+    document.getElementById('quiz-box').style.display = 'none';
+    document.getElementById('result-box').style.display = 'none';
+    
+    const totalQuestions = allQuestions.length;
+    document.getElementById('total-available-text').textContent = `Всего доступно вопросов в файле: ${totalQuestions}`;
+    
+    const selectElement = document.getElementById('quiz-count-select');
+    selectElement.innerHTML = '';
+    
+    if (totalQuestions <= 10) {
+        const option = document.createElement('option');
+        option.value = totalQuestions;
+        option.textContent = `Все вопросы (${totalQuestions})`;
+        selectElement.appendChild(option);
+    } else {
+        for (let i = 10; i < totalQuestions; i += 10) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `${i} вопросов`;
+            selectElement.appendChild(option);
+        }
+        const optionAll = document.createElement('option');
+        optionAll.value = totalQuestions;
+        optionAll.textContent = `Все вопросы (${totalQuestions})`;
+        selectElement.appendChild(optionAll);
+    }
+}
+
+document.getElementById('start-quiz-btn').addEventListener('click', () => {
+    const selectElement = document.getElementById('quiz-count-select');
+    const count = parseInt(selectElement.value, 10);
+    
     const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
     testQuestions = shuffled.slice(0, count);
     
@@ -163,9 +200,15 @@ function parseQuestions(text) {
 
     saveState();
     startQuiz();
+});
+
+function cancelSetup() {
+    document.getElementById('setup-box').style.display = 'none';
+    document.getElementById('upload-box').style.display = 'block';
 }
 
 function startQuiz() {
+    document.getElementById('setup-box').style.display = 'none';
     document.getElementById('upload-box').style.display = 'none';
     document.getElementById('quiz-box').style.display = 'block';
     document.getElementById('result-box').style.display = 'none';
@@ -283,7 +326,6 @@ function loadState() {
     try {
         const state = JSON.parse(saved);
         
-        // Проверяем, что данные внутри localStorage валидны
         if (!state || !state.testQuestions || state.testQuestions.length === 0) {
             localStorage.removeItem('bio_quiz_state');
             return;
@@ -299,13 +341,9 @@ function loadState() {
             badge.style.display = 'inline-block';
         }
         
-        setTimeout(() => { 
-            startQuiz(); 
-        }, 1000);
-
+        setTimeout(() => { startQuiz(); }, 1000);
     } catch (e) {
-        console.error("Ошибка восстановления прогресса:", e);
         localStorage.removeItem('bio_quiz_state');
-        location.reload(); // Перезагружаем страницу, чтобы сбросить зависший интерфейс
+        location.reload();
     }
 }

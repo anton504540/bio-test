@@ -80,7 +80,45 @@ h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
     margin-bottom: 20px;
 }
 
-/* Библиотека сохраненных тестов */
+/* Новые стили для экрана настройки количества вопросов */
+.setup-box {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--light);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.setup-field {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.setup-field label {
+    font-weight: 600;
+}
+
+.setup-field select {
+    padding: 10px 15px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 2px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    width: 200px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.setup-field select:focus {
+    border-color: var(--primary);
+}
+
 .library-container {
     text-align: left;
     margin-top: 20px;
