@@ -11,7 +11,6 @@
     --hover-bg: #f0f7ff;
 }
 
-/* Стили для темной темы */
 [data-theme="dark"] {
     --bg-color: #1a1a2e;
     --card-bg: #22223b;
@@ -43,7 +42,6 @@ body {
 
 h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
 
-/* Кнопка переключения темы */
 .theme-btn {
     position: absolute;
     top: 20px;
@@ -58,9 +56,7 @@ h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
     transition: all 0.3s;
 }
 
-.theme-btn:hover {
-    border-color: var(--primary);
-}
+.theme-btn:hover { border-color: var(--primary); }
 
 .file-select {
     border: 2px dashed var(--primary);
@@ -81,7 +77,52 @@ h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
     cursor: pointer;
     display: inline-block;
     font-weight: bold;
+    margin-bottom: 20px;
 }
+
+/* Библиотека сохраненных тестов */
+.library-container {
+    text-align: left;
+    margin-top: 20px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 20px;
+}
+
+.library-container h3 { margin-bottom: 15px; font-size: 1.1rem; }
+
+.files-list { list-style: none; padding: 0; margin: 0; }
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--light);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+}
+
+.file-name-click {
+    cursor: pointer;
+    font-weight: 500;
+    flex-grow: 1;
+    color: var(--primary);
+}
+
+.file-name-click:hover { text-decoration: underline; }
+
+.delete-btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.delete-btn:hover { opacity: 0.9; }
 
 .progress-bar {
     height: 8px;

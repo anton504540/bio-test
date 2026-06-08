@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор тестов по биологии</title>
-    <!-- Подключаем внешние стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Кнопка переключения темы -->
 <button id="theme-toggle" class="theme-btn" aria-label="Переключить тему">🌙 Темная тема</button>
 
 <div class="container">
     <h1>Генератор тестов</h1>
 
-    <!-- Экран загрузки файла -->
+    <!-- Экран загрузки и выбора файлов -->
     <div id="upload-box" class="file-select">
         <div id="restore-badge" class="badge" style="display: none;">Обнаружен незавершенный тест! Восстанавливаем...</div>
-        <p>Для начала выберите ваш текстовый или .md файл с вопросами</p>
-        <label for="file-input">Выбрать файл</label>
+        
+        <p>Загрузите новый текстовый или .md файл с вопросами:</p>
+        <label for="file-input">Загрузить файл</label>
         <input type="file" id="file-input" accept=".txt,.md">
-        <p id="file-name" style="margin-top: 10px; font-size: 0.9rem; color: gray;"></p>
+        
+        <!-- Библиотека сохраненных тестов -->
+        <div class="library-container">
+            <h3>Ваша библиотека тестов:</h3>
+            <ul id="saved-files-list" class="files-list">
+                <!-- Сюда JavaScript добавит сохраненные файлы -->
+            </ul>
+        </div>
     </div>
 
     <!-- Экран самого теста -->
@@ -36,7 +42,7 @@
         <ul id="options-list" class="options-list"></ul>
         
         <button id="next-btn" class="btn">Следующий вопрос</button>
-        <button onclick="resetQuiz()" class="btn btn-danger">Начать новый тест (сбросить прогресс)</button>
+        <button onclick="resetQuiz()" class="btn btn-danger">Выйти в меню (сбросить прогресс)</button>
     </div>
 
     <!-- Экран итогов -->
@@ -45,11 +51,10 @@
         <p>Ваш результат:</p>
         <div id="final-score" class="score">0 / 20</div>
         <p id="result-comment"></p>
-        <button onclick="resetQuiz()" class="btn">Начать новый тест</button>
+        <button onclick="resetQuiz()" class="btn">Вернуться в меню</button>
     </div>
 </div>
 
-<!-- Подключаем логику скрипта -->
 <script src="script.js"></script>
 </body>
 </html>

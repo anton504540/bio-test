@@ -3,23 +3,31 @@ let testQuestions = [];
 let currentQuestionIndex = 0;
 let correctAnswersCount = 0;
 let selectedAnswerIndex = null;
+let db = null;
 
-// Инициализация темы и состояния при загрузке
+// Инициализация базы данных IndexedDB для сохранения файлов
+const dbRequest = indexedDB.open("BioQuizFilesDB", 1);
+dbRequest.onupgradeneeded = function(e) {
+    let database = e.target.result;
+    if (!database.objectStoreNames.contains("files")) {
+        database.createObjectStore("files", { keyPath: "name" });
+    }
+};
+dbRequest.onsuccess = function(e) {
+    db = e.target.result;
+    renderSavedFilesList(); // Отрисовываем список файлов после подключения к БД
+};
+
 window.addEventListener('DOMContentLoaded', () => {
     initTheme();
     loadState();
 });
 
-// Логика переключения темы
+// Логика тем
 const themeToggleBtn = document.getElementById('theme-toggle');
 themeToggleBtn.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme');
-    let newTheme = 'light';
-    
-    if (currentTheme !== 'dark') {
-        newTheme = 'dark';
-    }
-    
+    let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('bio_quiz_theme', newTheme);
     updateThemeButtonText(newTheme);
@@ -35,20 +43,83 @@ function updateThemeButtonText(theme) {
     themeToggleBtn.textContent = theme === 'dark' ? '☀️ Светлая тема' : '🌙 Темная тема';
 }
 
-// Чтение и парсинг файла
+// Обработка загрузки нового файла
 document.getElementById('file-input').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
     
-    document.getElementById('file-name').textContent = `Выбран файл: ${file.name}`;
-    
     const reader = new FileReader();
     reader.onload = function(event) {
-        parseQuestions(event.target.result);
+        const textContent = event.target.result;
+        saveFileToDB(file.name, textContent); // Сохраняем в память телефона
+        parseQuestions(textContent);
     };
     reader.readAsText(file, 'UTF-8');
 });
 
+// Функции работы с IndexedDB
+function saveFileToDB(name, content) {
+    if (!db) return;
+    const tx = db.transaction("files", "readwrite");
+    const store = tx.objectStore("files");
+    store.put({ name: name, content: content });
+    tx.oncomplete = function() {
+        renderSavedFilesList();
+    };
+}
+
+function renderSavedFilesList() {
+    if (!db) return;
+    const listElement = document.getElementById('saved-files-list');
+    listElement.innerHTML = '';
+    
+    const tx = db.transaction("files", "readonly");
+    const store = tx.objectStore("files");
+    const request = store.getAll();
+    
+    request.onsuccess = function() {
+        const files = request.result;
+        if (files.length === 0) {
+            listElement.innerHTML = '<li style="font-size:0.9rem; color:gray;">Пока нет загруженных тестов</li>';
+            return;
+        }
+        files.forEach(file => {
+            const li = document.createElement('li');
+            li.className = 'file-item';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'file-name-click';
+            nameSpan.textContent = file.name;
+            nameSpan.addEventListener('click', () => {
+                parseQuestions(file.content);
+            });
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = 'Удалить';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteFileFromDB(file.name);
+            });
+            
+            li.appendChild(nameSpan);
+            li.appendChild(deleteBtn);
+            listElement.appendChild(li);
+        });
+    };
+}
+
+function deleteFileFromDB(name) {
+    if (!db) return;
+    const tx = db.transaction("files", "readwrite");
+    const store = tx.objectStore("files");
+    store.delete(name);
+    tx.oncomplete = function() {
+        renderSavedFilesList();
+    };
+}
+
+// Парсер текста
 function parseQuestions(text) {
     allQuestions = [];
     const blocks = text.split(/(?=\b\d+\.\s)/); 
@@ -78,7 +149,7 @@ function parseQuestions(text) {
     });
 
     if (allQuestions.length === 0) {
-        alert("Не удалось распознать вопросы в файле. Проверьте формат текста.");
+        alert("Не удалось распознать вопросы. Проверьте формат текста.");
         return;
     }
 
@@ -133,9 +204,7 @@ function selectOption(index) {
     selectedAnswerIndex = index;
     
     const qData = testQuestions[currentQuestionIndex];
-    const isCorrect = qData.options[index].isCorrect;
-    
-    if (isCorrect) {
+    if (qData.options[index].isCorrect) {
         correctAnswersCount++;
     }
     
@@ -179,15 +248,14 @@ document.getElementById('next-btn').addEventListener('click', () => {
 function showResult() {
     document.getElementById('quiz-box').style.display = 'none';
     document.getElementById('result-box').style.display = 'block';
-    
     document.getElementById('final-score').textContent = `${correctAnswersCount} / ${testQuestions.length}`;
     
     const percent = (correctAnswersCount / testQuestions.length) * 100;
     let comment = '';
     if (percent === 100) comment = 'Идеально! Отличный уровень знаний!';
     else if (percent >= 80) comment = 'Великолепный результат! Прекрасная подготовка.';
-    else if (percent >= 50) comment = 'Хорошо, но есть куда стремиться. Повторите темы.';
-    else comment = 'Стоит уделить больше времени теории и пройти тест заново.';
+    else if (percent >= 50) comment = 'Хорошо, но есть куда стремиться.';
+    else comment = 'Стоит уделить больше времени теории.';
     
     document.getElementById('result-comment').textContent = comment;
     localStorage.removeItem('bio_quiz_state');
@@ -214,17 +282,30 @@ function loadState() {
     
     try {
         const state = JSON.parse(saved);
+        
+        // Проверяем, что данные внутри localStorage валидны
+        if (!state || !state.testQuestions || state.testQuestions.length === 0) {
+            localStorage.removeItem('bio_quiz_state');
+            return;
+        }
+
         testQuestions = state.testQuestions;
         currentQuestionIndex = state.currentQuestionIndex;
         correctAnswersCount = state.correctAnswersCount;
         selectedAnswerIndex = state.selectedAnswerIndex;
         
-        if (testQuestions && testQuestions.length > 0) {
-            const badge = document.getElementById('restore-badge');
+        const badge = document.getElementById('restore-badge');
+        if (badge) {
             badge.style.display = 'inline-block';
-            setTimeout(() => { startQuiz(); }, 1000);
         }
+        
+        setTimeout(() => { 
+            startQuiz(); 
+        }, 1000);
+
     } catch (e) {
+        console.error("Ошибка восстановления прогресса:", e);
         localStorage.removeItem('bio_quiz_state');
+        location.reload(); // Перезагружаем страницу, чтобы сбросить зависший интерфейс
     }
 }
