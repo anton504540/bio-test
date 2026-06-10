@@ -57,7 +57,6 @@ document.getElementById('file-input').addEventListener('change', function(e) {
     reader.readAsText(file, 'UTF-8');
 });
 
-// Функции работы с IndexedDB
 function saveFileToDB(name, content) {
     if (!db) return;
     const tx = db.transaction("files", "readwrite");
@@ -119,7 +118,6 @@ function deleteFileFromDB(name) {
     };
 }
 
-// Парсер текста
 function parseQuestions(text) {
     allQuestions = [];
     const blocks = text.split(/(?=\b\d+\.\s)/); 
@@ -139,7 +137,6 @@ function parseQuestions(text) {
                     isCorrect = true;
                     line = line.replace(/\s*\[ОТВЕТ:\s*.*\]/g, '');
                 }
-                // Отрезаем букву с круглой скобкой в начале ("а) ", "б) "), оставляя только чистый текст
                 line = line.replace(/^[а-яёA-Za-z]\)\s*/, '');
                 options.push({ text: line, isCorrect: isCorrect });
             }
@@ -157,7 +154,6 @@ function parseQuestions(text) {
 
     openQuizSetup();
 }
-// Логика построения селектора количества вопросов
 function openQuizSetup() {
     document.getElementById('upload-box').style.display = 'none';
     document.getElementById('setup-box').style.display = 'block';
@@ -193,11 +189,9 @@ document.getElementById('start-quiz-btn').addEventListener('click', () => {
     const selectElement = document.getElementById('quiz-count-select');
     const count = parseInt(selectElement.value, 10);
     
-    // Перемешиваем сами вопросы
     const shuffledQuestions = [...allQuestions].sort(() => 0.5 - Math.random());
     const selectedQuestions = shuffledQuestions.slice(0, count);
     
-    // Новое: Перемешиваем ВАРЬЯНТЫ ОТВЕТОВ внутри каждого выбранного вопроса
     testQuestions = selectedQuestions.map(q => {
         return {
             question: q.question,
@@ -238,17 +232,13 @@ function showQuestion() {
     const optionsList = document.getElementById('options-list');
     optionsList.innerHTML = '';
     
-    // Алфавитные маркеры для красивого вывода ответов на русском языке
     const letters = ['а', 'б', 'в', 'г', 'д', 'е', 'ж'];
     
     qData.options.forEach((option, index) => {
         const li = document.createElement('li');
         li.className = 'option-item';
-        
-        // Автоматически подставляем правильную букву перед перемешанным вариантом ответа
         const prefix = letters[index] ? `${letters[index]}) ` : '';
         li.textContent = prefix + option.text;
-        
         li.addEventListener('click', () => selectOption(index));
         optionsList.appendChild(li);
     });
@@ -353,9 +343,7 @@ function loadState() {
         selectedAnswerIndex = state.selectedAnswerIndex;
         
         const badge = document.getElementById('restore-badge');
-        if (badge) {
-            badge.style.display = 'inline-block';
-        }
+        if (badge) { badge.style.display = 'inline-block'; }
         setTimeout(() => { startQuiz(); }, 1000);
     } catch (e) {
         localStorage.removeItem('bio_quiz_state');

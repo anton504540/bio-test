@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор тестов</title>
+    <!-- Подключаем внешние стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- Кнопка переключения темы -->
 <button id="theme-toggle" class="theme-btn" aria-label="Переключить тему">🌙 Темная тема</button>
 
 <div class="container">
@@ -30,25 +32,22 @@
         </div>
     </div>
 
-    <!-- Новое: Экран настройки генерации (выбор количества вопросов) -->
+    <!-- Экран настройки генерации (выбор количества вопросов) -->
     <div id="setup-box" class="setup-box" style="display: none;">
         <h3>Настройка теста</h3>
         <p id="total-available-text">Всего доступно вопросов в файле: 0</p>
         
         <div class="setup-field">
             <label for="quiz-count-select">Количество вопросов в тесте:</label>
-            <select id="quiz-count-select">
-                <!-- Опции сгенерирует JS динамически -->
-            </select>
+            <select id="quiz-count-select"></select>
         </div>
         
         <button id="start-quiz-btn" class="btn">Начать тестирование 🚀</button>
         <button onclick="cancelSetup()" class="btn btn-danger">Назад в меню</button>
     </div>
-
     <!-- Экран самого теста -->
     <div id="quiz-box" class="question-box">
-        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: gray; margin-bottom: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: gray; margin-bottom: 5px;">
             <span id="question-counter">Вопрос 1 из 20</span>
             <span id="score-counter">Правильно: 0</span>
         </div>
@@ -69,8 +68,14 @@
         <p id="result-comment"></p>
         <button onclick="resetQuiz()" class="btn">Вернуться в меню</button>
     </div>
+
+    <!-- Подпись создателей -->
+    <footer class="site-footer">
+        Создано <strong>W4YF4R3R</strong> при участии <span>AI Assistant</span> &copy; 2026
+    </footer>
 </div>
 
+<!-- Подключаем логику скрипта -->
 <script src="script.js"></script>
 </body>
 </html>
